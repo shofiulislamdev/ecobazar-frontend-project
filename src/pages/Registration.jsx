@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { User, Mail, Phone, Lock, Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Registration = () => {
@@ -26,7 +26,6 @@ export const Registration = () => {
     defaultValues: {
       name: '',
       email: '',
-      phone: '',
       password: '',
       confirmPassword: '',
     },
@@ -120,35 +119,6 @@ export const Registration = () => {
               </div>
               {errors.email && (
                 <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
-              )}
-            </div>
-
-            {/* Phone Number */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Phone Number
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                  <Phone className="h-5 w-5" />
-                </span>
-                <input
-                  id="reg_phone"
-                  type="tel"
-                  className={`block w-full rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${errors.phone ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
-                    }`}
-                  placeholder="+1 (555) 000-0000"
-                  {...registerForm('phone', {
-                    required: 'Phone number is required',
-                    pattern: {
-                      value: /^[+]?[0-9\s\-()]{7,15}$/,
-                      message: 'Invalid phone number format',
-                    },
-                  })}
-                />
-              </div>
-              {errors.phone && (
-                <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>
               )}
             </div>
 
