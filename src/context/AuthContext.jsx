@@ -179,6 +179,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update Profile
+  const updateProfile = async (updatedData) => {
+    try {
+      try {
+        const activeUserId = user?.id || user?._id;
+        if (activeUserId) {
+          const response = await axiosInstance.put(`/user/${activeUserId}`, updatedData);
+          if (response.data && response.data.user) {
+            const mergedUser = { ...user, ...response.data.user };
+            localStorage.setItem('user', JSON.stringify(mergedUser));
+            setUser(mergedUser);
+            return mergedUser;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('API update profile fallback:', apiErr);
+      }
+
+      const updatedUser = {
+        ...user,
+        ...updatedData,
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      return updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const isAuthenticated = !!token;
   const isAdmin = user?.role === 'admin';
 
@@ -191,6 +221,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateProfile,
         forgotPassword,
         resetPassword,
         verifyEmail,

@@ -21,6 +21,7 @@ import { ProductDetails } from './pages/ProductDetails';
 import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
 import { Orders } from './pages/Orders';
+import { Profile } from './pages/Profile';
 import { AdminPanel } from './pages/AdminPanel';
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<AdminPanel />} />
             </Routes>
           </div>
