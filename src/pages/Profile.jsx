@@ -127,7 +127,7 @@ export const Profile = () => {
           </div>
         </div>
 
-        {/* Main Personal Information Card */}
+        {/* Main Personal Information Card here */}
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-150 dark:border-gray-850 shadow-sm p-6 sm:p-8">
           
           {saveSuccess && (
