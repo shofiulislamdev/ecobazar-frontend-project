@@ -8,10 +8,11 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 export const Registration = () => {
-  const { register: registerUser } = useAuth();
+  // const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -35,13 +36,25 @@ export const Registration = () => {
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+
     try {
-      const { confirmPassword, ...payload } = data;
-      await registerUser(payload);
-      toast.success('Registration successful! Please check your email to verify your account.');
-      navigate('/');
+      const response = await axios.post(
+        'http://localhost:5000/registration',
+        data
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        navigate('/');
+      } else {
+        toast.error(response.data.message || 'Registration failed');
+      }
+
     } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
+      toast.error(
+        error.response?.data?.message ||
+        'Registration failed. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -76,10 +89,10 @@ export const Registration = () => {
                 <input
                   id="reg_name"
                   type="text"
-                  className={`block w-full rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${errors.name ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
+                  className={`block w-full rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${errors.fullName ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
                     }`}
                   placeholder="John Doe"
-                  {...registerForm('name', {
+                  {...registerForm('fullName', {
                     required: 'Full name is required',
                     minLength: {
                       value: 2,
@@ -88,8 +101,8 @@ export const Registration = () => {
                   })}
                 />
               </div>
-              {errors.name && (
-                <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+              {errors.fullName && (
+                <p className="mt-1 text-xs text-red-500">{errors.fullName.message}</p>
               )}
             </div>
 

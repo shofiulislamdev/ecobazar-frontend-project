@@ -114,16 +114,17 @@ export const AuthProvider = ({ children }) => {
   // Register: POST /registration
   const register = async (userData) => {
     setLoading(true);
+
     try {
       const response = await axiosInstance.post('/registration', userData);
-      const { token: receivedToken, user: receivedUser } = response.data;
 
-      localStorage.setItem('token', receivedToken);
-      localStorage.setItem('user', JSON.stringify(receivedUser));
+      if (!response.data.success) {
+        throw new Error(
+          response.data.message || 'Registration failed'
+        );
+      }
 
-      setToken(receivedToken);
-      setUser(receivedUser);
-      return receivedUser;
+      return response.data;
     } catch (error) {
       throw error;
     } finally {
