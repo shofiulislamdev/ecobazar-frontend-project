@@ -18,7 +18,9 @@ import {
   CheckCircle,
   AlertCircle,
   Lock,
-  Loader2
+  Loader2,
+  Banknote,
+  Smartphone
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -34,6 +36,7 @@ export const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Cash on delivery');
 
   const shippingThreshold = 100;
   const shippingCost = totalPrice >= shippingThreshold || totalPrice === 0 ? 0 : 15;
@@ -49,12 +52,12 @@ export const Checkout = () => {
     defaultValues: {
       cus_name: '',
       cus_email: '',
-      cus_add1: '',
-      cus_add2: '',
+      street_address: '',
       cus_city: '',
       cus_state: '',
       cus_postcode: '',
       cus_phone: '',
+      paymentMethod: 'Cash on delivery',
     }
   });
 
@@ -63,8 +66,17 @@ export const Checkout = () => {
     if (isAuthenticated && user) {
       setValue('cus_name', user.name || '');
       setValue('cus_email', user.email || '');
+      if (user.address) {
+        setValue('street_address', user.address);
+      }
+      if (user.city) {
+        setValue('cus_city', user.city);
+      }
       if (user.phone) {
         setValue('cus_phone', user.phone);
+      }
+      if (user.postalCode) {
+        setValue('cus_postcode', user.postalCode);
       }
     }
   }, [isAuthenticated, user, setValue]);
@@ -93,12 +105,13 @@ export const Checkout = () => {
       const payload = {
         cus_name: data.cus_name,
         cus_email: data.cus_email,
-        cus_add1: data.cus_add1,
-        cus_add2: data.cus_add2 || '',
+        cus_add1: data.street_address,
+        cus_add2: '',
         cus_city: data.cus_city,
-        cus_state: data.cus_state,
+        cus_state: data.cus_state || 'N/A',
         cus_postcode: data.cus_postcode,
         cus_phone: data.cus_phone,
+        paymentMethod: selectedPaymentMethod,
         userId: activeUserId,
         userid: activeUserId,
         amount: grandTotal,
@@ -120,7 +133,7 @@ export const Checkout = () => {
       // Call payment endpoint
       const response = await axiosInstance.post('/payment', payload);
       
-      toast.success('Payment authorized and order placed successfully!');
+      toast.success(`Order placed successfully with ${selectedPaymentMethod}!`);
       setCreatedOrder(response.data);
       setOrderSuccess(true);
       
@@ -353,40 +366,26 @@ export const Checkout = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
-                {/* Address Line 1 */}
+                {/* Street Address */}
                 <div className="sm:col-span-6">
-                  <label htmlFor="cus_add1" className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider">
-                    Address Line 1
+                  <label htmlFor="street_address" className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider">
+                    Street address
                   </label>
                   <input
-                    id="cus_add1"
+                    id="street_address"
                     type="text"
                     className={`block w-full rounded-xl border py-2.5 px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${
-                      errors.cus_add1 ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
+                      errors.street_address ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
                     }`}
-                    placeholder="123 Designer Street"
-                    {...register('cus_add1', { required: 'Address Line 1 is required' })}
+                    placeholder="House/Apartment #, Street name, Area..."
+                    {...register('street_address', { required: 'Street address is required' })}
                   />
-                  {errors.cus_add1 && (
+                  {errors.street_address && (
                     <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
-                      <span>{errors.cus_add1.message}</span>
+                      <span>{errors.street_address.message}</span>
                     </p>
                   )}
-                </div>
-
-                {/* Address Line 2 */}
-                <div className="sm:col-span-6">
-                  <label htmlFor="cus_add2" className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider">
-                    Address Line 2 <span className="text-gray-400 text-[10px] font-normal">(Optional)</span>
-                  </label>
-                  <input
-                    id="cus_add2"
-                    type="text"
-                    className="block w-full rounded-xl border py-2.5 px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white border-gray-300 dark:border-gray-700"
-                    placeholder="Suite 404, Penthouse"
-                    {...register('cus_add2')}
-                  />
                 </div>
 
                 {/* City */}
@@ -400,7 +399,7 @@ export const Checkout = () => {
                     className={`block w-full rounded-xl border py-2.5 px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${
                       errors.cus_city ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
                     }`}
-                    placeholder="San Francisco"
+                    placeholder="Dhaka"
                     {...register('cus_city', { required: 'City is required' })}
                   />
                   {errors.cus_city && (
@@ -414,23 +413,15 @@ export const Checkout = () => {
                 {/* State */}
                 <div className="sm:col-span-2">
                   <label htmlFor="cus_state" className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider">
-                    State
+                    State / Region
                   </label>
                   <input
                     id="cus_state"
                     type="text"
-                    className={`block w-full rounded-xl border py-2.5 px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${
-                      errors.cus_state ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
-                    }`}
-                    placeholder="California"
-                    {...register('cus_state', { required: 'State is required' })}
+                    className="block w-full rounded-xl border py-2.5 px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white border-gray-300 dark:border-gray-700"
+                    placeholder="Dhaka Division"
+                    {...register('cus_state')}
                   />
-                  {errors.cus_state && (
-                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      <span>{errors.cus_state.message}</span>
-                    </p>
-                  )}
                 </div>
 
                 {/* Postcode */}
@@ -444,7 +435,7 @@ export const Checkout = () => {
                     className={`block w-full rounded-xl border py-2.5 px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${
                       errors.cus_postcode ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
                     }`}
-                    placeholder="94103"
+                    placeholder="1212"
                     {...register('cus_postcode', { required: 'Postcode is required' })}
                   />
                   {errors.cus_postcode && (
@@ -457,19 +448,183 @@ export const Checkout = () => {
               </div>
             </div>
 
-            {/* Simulated Payment Gateway Card */}
+            {/* Payment Method Section */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-150 dark:border-gray-850 p-6 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Simulated Secure Payment Method</span>
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                By completing this order, our system simulates a real, production-ready payment flow utilizing the secure <strong className="text-gray-900 dark:text-white">POST /payment</strong> endpoint. No actual currency will be debited.
-              </p>
-              <div className="p-3.5 bg-indigo-50/50 dark:bg-indigo-950/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300">
-                <Lock className="h-4 w-4" />
-                <span>End-to-end SSL/TLS encryptions active.</span>
+              <div className="border-b border-gray-100 dark:border-gray-850 pb-4">
+                <h2 className="text-lg font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  <span>Payment Method</span>
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select your preferred payment method to complete your purchase.</p>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {/* Cash on delivery */}
+                <label 
+                  className={`relative flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
+                    selectedPaymentMethod === 'Cash on delivery' 
+                      ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 ring-2 ring-indigo-600 dark:border-indigo-500' 
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-950'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="Cash on delivery"
+                    className="sr-only"
+                    checked={selectedPaymentMethod === 'Cash on delivery'}
+                    onChange={() => setSelectedPaymentMethod('Cash on delivery')}
+                  />
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      selectedPaymentMethod === 'Cash on delivery' ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                    }`}>
+                      <Banknote className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-gray-900 dark:text-white">Cash on delivery</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400">Pay cash upon package arrival</div>
+                    </div>
+                  </div>
+                </label>
+
+                {/* bKash */}
+                <label 
+                  className={`relative flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
+                    selectedPaymentMethod === 'bKash' 
+                      ? 'border-pink-600 bg-pink-50/50 dark:bg-pink-950/30 ring-2 ring-pink-600 dark:border-pink-500' 
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-950'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="bKash"
+                    className="sr-only"
+                    checked={selectedPaymentMethod === 'bKash'}
+                    onChange={() => setSelectedPaymentMethod('bKash')}
+                  />
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                      selectedPaymentMethod === 'bKash' ? 'bg-pink-600 text-white' : 'bg-pink-100 text-pink-600 dark:bg-pink-950 dark:text-pink-400'
+                    }`}>
+                      bKash
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-gray-900 dark:text-white">bKash</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400">Mobile Banking Payment</div>
+                    </div>
+                  </div>
+                </label>
+
+                {/* Nagad */}
+                <label 
+                  className={`relative flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
+                    selectedPaymentMethod === 'Nagad' 
+                      ? 'border-orange-600 bg-orange-50/50 dark:bg-orange-950/30 ring-2 ring-orange-600 dark:border-orange-500' 
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-950'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="Nagad"
+                    className="sr-only"
+                    checked={selectedPaymentMethod === 'Nagad'}
+                    onChange={() => setSelectedPaymentMethod('Nagad')}
+                  />
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                      selectedPaymentMethod === 'Nagad' ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400'
+                    }`}>
+                      Nagad
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-gray-900 dark:text-white">Nagad</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400">Mobile Wallet Payment</div>
+                    </div>
+                  </div>
+                </label>
+
+                {/* Debit/Credit card */}
+                <label 
+                  className={`relative flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
+                    selectedPaymentMethod === 'Debit/Credit card' 
+                      ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 ring-2 ring-indigo-600 dark:border-indigo-500' 
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-950'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="Debit/Credit card"
+                    className="sr-only"
+                    checked={selectedPaymentMethod === 'Debit/Credit card'}
+                    onChange={() => setSelectedPaymentMethod('Debit/Credit card')}
+                  />
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      selectedPaymentMethod === 'Debit/Credit card' ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                    }`}>
+                      <CreditCard className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-gray-900 dark:text-white">Debit/Credit card</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400">Visa, Mastercard, Amex</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Extra input fields per payment method */}
+              {(selectedPaymentMethod === 'bKash' || selectedPaymentMethod === 'Nagad') && (
+                <div className="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 space-y-3">
+                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    <Smartphone className="h-4 w-4 text-indigo-600" />
+                    <span>{selectedPaymentMethod} Account Number</span>
+                  </p>
+                  <input
+                    type="tel"
+                    placeholder="017XXXXXXXX"
+                    className="w-full rounded-xl border border-gray-300 dark:border-gray-700 py-2.5 px-3 text-sm dark:bg-gray-900 dark:text-white"
+                  />
+                  <p className="text-[11px] text-gray-400">You will receive a payment prompt or SMS request to confirm payment.</p>
+                </div>
+              )}
+
+              {selectedPaymentMethod === 'Debit/Credit card' && (
+                <div className="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Card Number</label>
+                    <input
+                      type="text"
+                      placeholder="4532 •••• •••• 8892"
+                      className="w-full rounded-xl border border-gray-300 dark:border-gray-700 py-2.5 px-3 text-sm dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Expiry Date</label>
+                      <input
+                        type="text"
+                        placeholder="MM/YY"
+                        className="w-full rounded-xl border border-gray-300 dark:border-gray-700 py-2.5 px-3 text-sm dark:bg-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">CVC / CVV</label>
+                      <input
+                        type="text"
+                        placeholder="123"
+                        className="w-full rounded-xl border border-gray-300 dark:border-gray-700 py-2.5 px-3 text-sm dark:bg-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedPaymentMethod === 'Cash on delivery' && (
+                <div className="mt-4 p-3.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-900/40 flex items-center gap-2.5 text-xs text-emerald-800 dark:text-emerald-300">
+                  <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>Pay with cash when your package is delivered to your address.</span>
+                </div>
+              )}
             </div>
           </form>
 
