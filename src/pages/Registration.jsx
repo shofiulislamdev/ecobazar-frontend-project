@@ -45,7 +45,7 @@ export const Registration = () => {
 
       if (response.data.success) {
         toast.success(response.data.message);
-        navigate('/');
+        navigate('/login');
       } else {
         toast.error(response.data.message || 'Registration failed');
       }

@@ -8,10 +8,11 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Mail, Lock, Eye, EyeOff, LogIn, Send, ArrowLeft, Shield, User } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 export const Login = () => {
-  const { login, resendVerification } = useAuth();
+  // const { login, resendVerification } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
@@ -20,31 +21,31 @@ export const Login = () => {
   const [resendEmail, setResendEmail] = useState('');
   const [showResendInput, setShowResendInput] = useState(false);
 
-  const handleQuickUserLogin = async () => {
-    setIsSubmitting(true);
-    try {
-      await login({ email: 'user@ecobazar.com', password: 'user123' });
-      toast.success('Signed in as Quick Test User!');
-      navigate('/');
-    } catch (error) {
-      toast.error('Quick test user login failed.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // const handleQuickUserLogin = async () => {
+  //   setIsSubmitting(true);
+  //   try {
+  //     await login({ email: 'user@ecobazar.com', password: 'user123' });
+  //     toast.success('Signed in as Quick Test User!');
+  //     navigate('/');
+  //   } catch (error) {
+  //     toast.error('Quick test user login failed.');
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
-  const handleQuickAdminLogin = async () => {
-    setIsSubmitting(true);
-    try {
-      await login({ email: 'admin@ecobazar.com', password: 'admin123', role: 'admin' });
-      toast.success('Signed in as Quick Test Admin!');
-      navigate('/admin');
-    } catch (error) {
-      toast.error('Quick test admin login failed.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // const handleQuickAdminLogin = async () => {
+  //   setIsSubmitting(true);
+  //   try {
+  //     await login({ email: 'admin@ecobazar.com', password: 'admin123', role: 'admin' });
+  //     toast.success('Signed in as Quick Test Admin!');
+  //     navigate('/admin');
+  //   } catch (error) {
+  //     toast.error('Quick test admin login failed.');
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
   const {
     register: registerForm,
@@ -61,17 +62,38 @@ export const Login = () => {
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+
     try {
-      await login(data);
-      toast.success('Successfully logged in!');
-      navigate(from, { replace: true });
-    } catch (error) {
-      toast.error(error.message || 'Login failed. Please check your credentials.');
-      // If the email is not verified, suggest resending verification
-      if (error.message && error.message.toLowerCase().includes('verify')) {
-        setShowResendInput(true);
-        setResendEmail(data.email);
+      const response = await axios.post(
+        'http://localhost:5000/login',
+        data
+      );
+
+      if (response.data.success) {
+        // Save JWT token
+        localStorage.setItem('token', response.data.token);
+
+        // Save logged-in user
+        localStorage.setItem(
+          'user',
+          JSON.stringify(response.data.user)
+        );
+
+        // Tell other components that authentication changed
+        window.dispatchEvent(new Event('auth-change'));
+
+        toast.success(response.data.message || 'Login successful!');
+
+        navigate(from, { replace: true });
+      } else {
+        toast.error(response.data.message || 'Login failed');
       }
+
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        'Login failed. Please check your credentials.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -79,17 +101,41 @@ export const Login = () => {
 
   const handleResendEmail = async (e) => {
     e.preventDefault();
+
     if (!resendEmail) {
       toast.warn('Please enter an email address.');
       return;
     }
+
     setIsResending(true);
+
     try {
-      const response = await resendVerification(resendEmail);
-      toast.success(response.message || 'Verification email resent successfully!');
-      setShowResendInput(false);
+      const response = await axios.post(
+        'http://localhost:5000/resendverificationemail',
+        {
+          email: resendEmail
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          response.data.message ||
+          'Verification email resent successfully!'
+        );
+
+        setShowResendInput(false);
+      } else {
+        toast.error(
+          response.data.message ||
+          'Failed to resend verification email.'
+        );
+      }
+
     } catch (error) {
-      toast.error(error.message || 'Failed to resend verification email.');
+      toast.error(
+        error.response?.data?.message ||
+        'Failed to resend verification email.'
+      );
     } finally {
       setIsResending(false);
     }
@@ -224,7 +270,7 @@ export const Login = () => {
           </div>
 
           {/* Quick Test Sign In Options */}
-          <div className="pt-2 border-t border-gray-150 dark:border-gray-800 space-y-2">
+          {/* <div className="pt-2 border-t border-gray-150 dark:border-gray-800 space-y-2">
             <p className="text-center text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Quick Test Sign In
             </p>
@@ -250,7 +296,7 @@ export const Login = () => {
                 <span>Test Admin</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex">
             <Link
@@ -309,3 +355,4 @@ export const Login = () => {
 };
 
 export default Login;
+
