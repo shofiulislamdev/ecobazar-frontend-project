@@ -265,11 +265,11 @@ export const AdminPanel = () => {
           {/* Right: Current Admin Info & Actions */}
           <div className="flex items-center gap-3">
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-xs font-bold text-slate-200">{user?.name || 'Admin User'}</span>
+              <span className="text-xs font-bold text-slate-200">{user?.fullName || 'Admin User'}</span>
               <span className="text-[10px] text-indigo-400 font-mono">{user?.email || 'admin@ecobazar.com'}</span>
             </div>
             <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white text-xs border border-indigo-400">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'}
             </div>
             <button
               id="admin_logout_btn"
