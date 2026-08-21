@@ -7,11 +7,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 export const EmailVerification = () => {
   const { token } = useParams();
-  const { verifyEmail } = useAuth();
+  // const { verifyEmail } = useAuth();
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying');
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,18 +31,29 @@ export const EmailVerification = () => {
 
     const performVerification = async () => {
       try {
-        const result = await verifyEmail(token);
+        const response = await axios.post(
+          `http://localhost:5000/verifyemail/${token}`
+        );
+
         setStatus('success');
-        toast.success(result.message || 'Email verified successfully!');
+
+        toast.success(
+          response.data.message || 'Email verified successfully!'
+        );
       } catch (error) {
         setStatus('failed');
-        setErrorMessage(error.message || 'Verification link is invalid or has expired.');
-        toast.error(error.message || 'Email verification failed.');
+
+        const message =
+          error.response?.data?.message ||
+          'Verification link is invalid or has expired.';
+
+        setErrorMessage(message);
+        toast.error(message);
       }
     };
 
     performVerification();
-  }, [token, verifyEmail]);
+  }, [token]);
 
   return (
     <div id="verification_container" className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950 sm:px-6 lg:px-8">

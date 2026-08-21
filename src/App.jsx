@@ -36,7 +36,7 @@ export default function App() {
               <Route path="/registration" element={<Registration />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
-              <Route path="/verify-email/:token" element={<EmailVerification />} />
+              <Route path="/verifyemail/:token" element={<EmailVerification />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
