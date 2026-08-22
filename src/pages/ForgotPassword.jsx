@@ -8,10 +8,11 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Mail, ArrowLeft, KeyRound } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 export const ForgotPassword = () => {
-  const { forgotPassword } = useAuth();
+  // const { forgotPassword } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
@@ -27,12 +28,31 @@ export const ForgotPassword = () => {
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+
     try {
-      const result = await forgotPassword(data.email);
-      toast.success(result.message || 'Reset password link sent to your email!');
-      setEmailSent(true);
+      const response = await axios.post(
+        'http://localhost:5000/forgotpassword',
+        {
+          email: data.email,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          response.data.message || 'Reset password link sent to your email!'
+        );
+
+        setEmailSent(true);
+      } else {
+        toast.error(
+          response.data.message || 'Failed to send reset link.'
+        );
+      }
     } catch (error) {
-      toast.error(error.message || 'Failed to send reset link. Please check the email and try again.');
+      toast.error(
+        error.response?.data?.message ||
+        'Failed to send reset link. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -81,9 +101,8 @@ export const ForgotPassword = () => {
                   id="forgot_email"
                   type="email"
                   autoComplete="email"
-                  className={`block w-full rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-white dark:border-gray-750 ${
-                    errors.email ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
-                  }`}
+                  className={`block w-full rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-white dark:border-gray-750 ${errors.email ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
+                    }`}
                   placeholder="name@example.com"
                   {...register('email', {
                     required: 'Email address is required',

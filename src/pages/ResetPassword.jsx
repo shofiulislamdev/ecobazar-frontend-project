@@ -8,13 +8,14 @@ import { useForm } from 'react-hook-form';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Lock, Eye, EyeOff, KeyRound, CheckCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 export const ResetPassword = () => {
-  const { resetPassword } = useAuth();
+  // const { resetPassword } = useAuth();
   const { token } = useParams();
   const navigate = useNavigate();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,13 +40,34 @@ export const ResetPassword = () => {
       toast.error('Invalid or expired reset token.');
       return;
     }
+
     setIsSubmitting(true);
+
     try {
-      await resetPassword(token, { password: data.password });
-      toast.success('Your password has been reset successfully!');
-      setSuccess(true);
+      const response = await axios.post(
+        `http://localhost:5000/resetpassword/${token}`,
+        {
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          response.data.message || 'Your password has been reset successfully!'
+        );
+
+        setSuccess(true);
+      } else {
+        toast.error(
+          response.data.message || 'Failed to reset password.'
+        );
+      }
     } catch (error) {
-      toast.error(error.message || 'Failed to reset password. The link may have expired.');
+      toast.error(
+        error.response?.data?.message ||
+        'Failed to reset password. The link may have expired.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -97,9 +119,8 @@ export const ResetPassword = () => {
                   <input
                     id="new_password"
                     type={showPassword ? 'text' : 'password'}
-                    className={`block w-full rounded-lg border py-3 pl-10 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${
-                      errors.password ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
-                    }`}
+                    className={`block w-full rounded-lg border py-3 pl-10 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${errors.password ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
+                      }`}
                     placeholder="••••••••"
                     {...register('password', {
                       required: 'Password is required',
@@ -135,9 +156,8 @@ export const ResetPassword = () => {
                   <input
                     id="confirm_password"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    className={`block w-full rounded-lg border py-3 pl-10 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${
-                      errors.confirmPassword ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
-                    }`}
+                    className={`block w-full rounded-lg border py-3 pl-10 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-850 dark:text-white dark:border-gray-750 ${errors.confirmPassword ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-700'
+                      }`}
                     placeholder="••••••••"
                     {...register('confirmPassword', {
                       required: 'Please confirm your password',
